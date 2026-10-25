@@ -26,9 +26,9 @@ git push -u origin main
 
 Suggested repository description:
 
-> Windows proxy workspace with verified ISP egress, multi-hop routing, persistent browser profiles, and local diagnostics.
+> Claude & international website access workspace for Windows: verified ISP egress, proxy chains, persistent browser profiles and diagnostics. 面向 Claude 与海外网站合规访问，维护者实测。
 
-Optional topics: `electron`, `proxy`, `windows`, `tun`, `socks5`, `browser-profiles`, `network-diagnostics`.
+Optional topics: `claude`, `anthropic`, `isp-proxy`, `proxy-chain`, `electron`, `windows`, `tun`, `socks5`, `browser-profiles`, `network-diagnostics`. Claude / Anthropic keywords identify the use case, not an official affiliation. Attribute risk-control results to the maintainer's tested scenarios rather than promising freedom from verification or account restrictions.
 
 ## Review what you are committing
 

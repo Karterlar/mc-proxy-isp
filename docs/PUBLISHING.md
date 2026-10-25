@@ -26,9 +26,9 @@ git push -u origin main
 
 建议仓库简介：
 
-> Windows proxy workspace with verified ISP egress, multi-hop routing, persistent browser profiles, and local diagnostics.
+> Claude & international website access workspace for Windows: verified ISP egress, proxy chains, persistent browser profiles and diagnostics. 面向 Claude 与海外网站合规访问，维护者实测。
 
-可选主题：`electron`、`proxy`、`windows`、`tun`、`socks5`、`browser-profiles`、`network-diagnostics`。
+可选主题：`claude`、`anthropic`、`isp-proxy`、`proxy-chain`、`electron`、`windows`、`tun`、`socks5`、`browser-profiles`、`network-diagnostics`。使用 Claude / Anthropic 关键词说明使用场景，不表示官方关系；风控效果应注明维护者实测范围，不写成免验证或防封保证。
 
 ## 提交范围
 

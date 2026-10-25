@@ -1,10 +1,16 @@
-# From connection setup to a dedicated workspace
+# A workflow for Claude and international websites
 
 [English](FEATURES.md) | [简体中文](../FEATURES.md)
 
-MC Proxy brings connection setup, ISP egress verification, browser profiles, and recovery tools into one workflow. Choose an entry point that works on your current network, connect it to your intended ISP exit, and reuse your browser sessions and work settings.
+MC Proxy is designed for compliant access to Claude and other international websites. It brings connection setup, ISP egress verification, browser profiles, and recovery tools into one workflow. Choose an entry point that works on your current network, connect it to your intended ISP exit, and reuse your browser sessions and work settings.
 
 The application interface is currently in Chinese. This guide includes Chinese labels where they help you find a control or recognize a screenshot.
+
+## Claude workflows and maintainer field results
+
+The maintainer reports successful access and use of Claude and selected international websites, with good results in the tested environments when dealing with platform access checks and risk controls. This is maintainer-reported experience, not independent certification or a result established for every route, website, or account.
+
+For everyday work, verify the ISP exit first, then open the same dedicated browser environment to use Claude. Use separate profile directories when you need to separate work contexts. The default Chrome option supports this workflow; the optional fingerprint browser is not a prerequisite. Consistent egress, sessions, and settings are the project's main approach to avoidable access problems. The destination platform still determines account status, regional eligibility, and service policy.
 
 ## Set up your first connection
 
@@ -41,6 +47,8 @@ Work environments cover time zone, language, and regional settings, with country
 Stopping the proxy, restoring system settings, and removing an old network lock are separate actions. Closing the main window minimizes the application to the tray and leaves background sessions running. Use **Safe exit** (安全退出) when you want to quit.
 
 ## Diagnose a problem
+
+If Claude or several websites suddenly time out, distinguish the VPN / VPS entry, ISP authentication and egress, destination TLS, and browser session before treating the failure as a risk-control issue. A single application such as ToDesk staying connected does not establish that the ISP chain is healthy. A successful HTTPS request also does not replace a real sign-in and feature check.
 
 The workspace and diagnostics pages report proxy egress, system networking, destination TLS, browser observations, and application launch results separately. Errors appear on the page or in the drawer for the current operation. A successful HTTPS connection alone does not establish that a website account or model service is usable.
 

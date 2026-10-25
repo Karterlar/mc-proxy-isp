@@ -2,9 +2,11 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-**A Windows ISP proxy client for VPN/VPS proxy chains, verified egress, TUN routing, and persistent browser profiles.**
+**A Windows workspace for Claude and international websites, designed for compliant use with verified ISP egress and persistent, separate browser sessions.**
 
-MC Proxy connects your own ISP proxy through a relay VPS, an imported VPN node, or an existing external VPN. It checks the observed exit before opening a managed browser, and brings connection state, browser profiles, environment settings, and diagnostics into one desktop client.
+MC Proxy is built to make everyday work with **Claude** and other international services more stable and consistent. It connects your own ISP proxy through a relay VPS, an imported VPN node, or an existing external VPN, checks the observed exit before opening a managed browser, and keeps connection state, browser profiles, environment settings, and diagnostics in one desktop client.
+
+> **Maintainer-tested with Claude:** The maintainer reports successful access and use of Claude and selected international websites, with good results in the tested environments when dealing with platform access checks and risk controls. These are reported field results, not a guarantee for every website, account, or future policy change.
 
 Source version **1.6.11-rc.17** · Windows x64 · Electron · HTML/CSS/JavaScript
 
@@ -16,6 +18,7 @@ Source version **1.6.11-rc.17** · Windows x64 · Electron · HTML/CSS/JavaScrip
 
 ## Highlights
 
+- **A workflow built around Claude.** Verify the intended ISP exit, reuse a dedicated browser session, and inspect network or environment problems from the same workspace.
 - **Verify the ISP exit.** Two independent sources check the exit during setup. Connections must match the saved expected IP before they are reported ready. The provider determines whether the exit stays fixed over time.
 - **Choose the entry route.** Use your relay VPS, import supported VPN nodes, or keep an external VPN running. ISP proxies support HTTP CONNECT and SOCKS5; accounts and infrastructure are supplied by you.
 - **Choose traffic coverage.** Relay and imported-node routes support global TUN or a TUN policy with private-network exceptions. Explicit proxy mode covers applications configured to use it. External VPN compatibility provides an explicit HTTP proxy only.
@@ -29,6 +32,12 @@ Windows -> relay VPS / imported VPN node / external VPN -> your ISP proxy -> web
 ```
 
 Imported formats include Clash YAML, sing-box JSON, node URIs, single-layer Base64 text, and limited INI / V2Ray configuration. Supported node types include SS, VMess, VLESS, Trojan, Hysteria2, TUIC, HTTP, and SOCKS, subject to supported fields and transports. Original rules, DNS, and proxy groups are not executed; subscriptions are not automatically refreshed.
+
+## Claude access and risk-control compatibility
+
+The goal is to reduce avoidable access problems associated with changing egress IPs, mixed browser sessions, and inconsistent local settings. MC Proxy combines expected-IP checks, reusable browser profiles, optional environment settings, and layered diagnostics to help keep those factors consistent. Google Chrome remains the default; the optional fingerprint browser is not required for the standard workflow.
+
+Use the service only where you are authorized and eligible to access it, in accordance with applicable laws and the service's terms. MC Proxy is an independent project, not affiliated with or endorsed by Anthropic. It does not change account eligibility or promise to bypass every risk check, prevent restrictions, or remove verification requirements. See the [workflow guide](docs/en/FEATURES.md) for setup and troubleshooting.
 
 ## Fingerprint browser source
 
