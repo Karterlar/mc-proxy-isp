@@ -1,0 +1,139 @@
+{
+  "name": "mc-proxy",
+  "productName": "MC Proxy",
+  "version": "1.6.11-rc.17",
+  "description": "MC Proxy private network desktop client",
+  "private": true,
+  "type": "module",
+  "main": "desktop/main.mjs",
+  "author": "MC Proxy",
+  "license": "UNLICENSED",
+  "scripts": {
+    "install:desktop": "node node_modules/electron/install.js",
+    "start": "electron .",
+    "dev": "electron . --mock",
+    "test:desktop": "node --test desktop/test/*.test.mjs",
+    "desktop:smoke": "electron . --mock --smoke-test",
+    "build:desktop": "node tools/packaging/build.mjs dir",
+    "build:portable": "node tools/packaging/build.mjs portable",
+    "build:installer": "node tools/packaging/build.mjs nsis",
+    "build:delivery": "node tools/packaging/build.mjs nsis portable",
+    "audit:delivery": "node tools/packaging/audit.mjs",
+    "test:packaging": "node --test tools/packaging/*.test.mjs",
+    "test:licensing": "node --test backend/test/license-client.test.mjs desktop/test/license-*.test.mjs tools/licensing/*.test.mjs",
+    "license:admin": "node tools/licensing/admin.mjs",
+    "build:developer": "node tools/packaging/build.mjs --edition developer nsis portable",
+    "build:licensed": "node tools/packaging/build.mjs --edition licensed nsis portable"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.mcproxy.desktop",
+    "productName": "MC Proxy",
+    "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "dist/1.6.11-rc.17-unsigned",
+      "buildResources": "frontend/assets"
+    },
+    "files": [
+      "desktop/**/*.mjs",
+      "desktop/preload.cjs",
+      "desktop/admin-preload.cjs",
+      "!desktop/test/**",
+      "backend/src/**/*.mjs",
+      "frontend/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".cache/fingerprint-browser-source-150-r2",
+        "to": "fingerprint-browser",
+        "filter": [
+          "**/*",
+          ".mc-fingerprint-runtime.json",
+          "!debug.log"
+        ]
+      },
+      {
+        "from": "backend/.cache/core/sing-box-1.14.2-windows-amd64",
+        "to": "core/sing-box-1.14.2",
+        "filter": [
+          "sing-box.exe",
+          "libcronet.dll",
+          "LICENSE"
+        ]
+      },
+      {
+        "from": "tools/offline-chain-test",
+        "to": "offline-chain-test",
+        "filter": [
+          "*.cmd",
+          "*.ps1",
+          "*.cs",
+          "*.txt"
+        ]
+      },
+      {
+        "from": "licenses",
+        "to": "licenses",
+        "filter": [
+          "*.txt",
+          "*.json"
+        ]
+      },
+      {
+        "from": "docs",
+        "to": "delivery-notes",
+        "filter": [
+          "FEATURES.md",
+          "DEVELOPMENT.md",
+          "ARCHITECTURE.md",
+          "LICENSING.md"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "frontend/assets/mc-proxy.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": true
+    },
+    "portable": {
+      "artifactName": "MC-Proxy-${version}-Windows-x64-unsigned-test-portable.exe",
+      "requestExecutionLevel": "user",
+      "unpackDirName": true
+    },
+    "nsis": {
+      "artifactName": "MC-Proxy-${version}-Windows-x64-unsigned-test-setup.exe",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": false,
+      "include": "tools/packaging/installer.nsh"
+    }
+  },
+  "dependencies": {
+    "js-yaml": "4.3.2"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

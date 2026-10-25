@@ -1,0 +1,16 @@
+{
+  "version": "1.14.2",
+  "directory": "sing-box-1.14.2-windows-amd64",
+  "archiveUrl": "https://github.com/SagerNet/sing-box/releases/download/v1.14.2/sing-box-1.14.2-windows-amd64.zip",
+  "archiveSha256": "c2d8bfff918755808781dfdeeb8581b6c91eb3a243d9a7b55483cfc0c0684d32",
+  "digestSource": "https://github.com/SagerNet/sing-box/releases/expanded_assets/v1.14.2",
+  "sourceTag": "https://github.com/SagerNet/sing-box/tree/v1.14.2",
+  "cronetSourceRevision": "0d28acc44093df24b2526dea3d6ffefd6b0a54f0",
+  "verifiedAt": "2026-10-04",
+  "verification": "Cached official ZIP SHA256 matches release digest; all three ZIP entry SHA256 values match the cached files. No binary was replaced or executed by this verification.",
+  "files": {
+    "sing-box.exe": { "sha256": "7bbef1dea9189ee12799ae834ea4b4658355da25c47a21ad8804904c0ccd9410", "bytes": 81947136 },
+    "libcronet.dll": { "sha256": "3217c6260fbca5f16072e0b79735742f40109a63bb0ff88fd6b96dd6b54a2928", "bytes": 9529344 },
+    "LICENSE": { "sha256": "bb3805862b583aee73ad6f7805ec634747a37257a637a3069857843f05ea589c", "bytes": 808 }
+  }
+}

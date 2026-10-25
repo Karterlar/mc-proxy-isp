@@ -1,0 +1,62 @@
+[
+  {
+    "url": "https://www.google.com/chrome/static/images/favicons/android-icon-192x192.png",
+    "name": "chrome",
+    "page": "https://www.google.com/chrome/",
+    "file": "chrome.png",
+    "fetchedAt": "2026-10-07T16:44:41.6568431Z",
+    "sha256": "df6e0f204a9715c5b505d30f636c1c5511c44dcb08ed50f63e1dd23845ab5df7",
+    "bytes": 10569,
+    "usage": "Official product/site identification icon, packaged locally; trademark rights remain with the respective owner."
+  },
+  {
+    "url": "https://edgecdn-embza6g8cacagcbn.z01.azurefd.net/welcome/static/favicon.png",
+    "name": "edge",
+    "page": "https://www.microsoft.com/edge",
+    "file": "edge.png",
+    "fetchedAt": "2026-10-07T16:44:41.6697831Z",
+    "sha256": "4d755ac02a070a1b4bb1b6f1c88ab493440109a8ac1e314aaced92f94cdc98e9",
+    "bytes": 7904,
+    "usage": "Official product/site identification icon, packaged locally; trademark rights remain with the respective owner."
+  },
+  {
+    "url": "https://github.githubassets.com/favicons/favicon.svg",
+    "name": "github",
+    "page": "https://github.com/",
+    "file": "github.svg",
+    "fetchedAt": "2026-10-07T16:44:41.6703247Z",
+    "sha256": "6a9577cd4f7fa6b75bde1025af85b944e9dd1388373b55ccba6e9f80ac2eae60",
+    "bytes": 959,
+    "usage": "Official product/site identification icon, packaged locally; trademark rights remain with the respective owner."
+  },
+  {
+    "url": "https://www.youtube.com/s/desktop/01aaffea/img/favicon_144x144.png",
+    "name": "youtube",
+    "page": "https://www.youtube.com/",
+    "file": "youtube.png",
+    "fetchedAt": "2026-10-07T16:44:41.6707661Z",
+    "sha256": "e39dc3d8c2f82ad2375132a8efcf521c232d5e2cf08abeb9bebe1ad94afb2157",
+    "bytes": 5020,
+    "usage": "Official product/site identification icon, packaged locally; trademark rights remain with the respective owner."
+  },
+  {
+    "url": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png",
+    "name": "google",
+    "page": "https://www.google.com/",
+    "file": "google.png",
+    "fetchedAt": "2026-10-07T16:44:41.6711903Z",
+    "sha256": "5b95eed86b7603081f22edd5da01de4c028b118b20885793b9b3ad5f6cbe1e71",
+    "bytes": 3428,
+    "usage": "Official product/site identification icon, packaged locally; trademark rights remain with the respective owner."
+  },
+  {
+    "name": "wikipedia",
+    "url": "https://www.wikipedia.org/static/apple-touch/wikipedia.png",
+    "file": "wikipedia.png",
+    "page": "https://www.wikipedia.org/",
+    "fetchedAt": "2026-10-07T16:44:41.6716105Z",
+    "sha256": "4c8bf96d667fa2e9f072bdd8e9f25c8ba6ba2ad55df1af7d9ea0dd575c12abee",
+    "bytes": 1313,
+    "usage": "Official product/site identification icon, packaged locally; trademark rights remain with the respective owner."
+  }
+]

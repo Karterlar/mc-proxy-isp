@@ -1,0 +1,34 @@
+MC Proxy local UI imagery — source and use notice
+Verified against the official NASA pages on 2026-10-06.
+
+Bundled asset: frontend/assets/earth-nasa-globe-east.jpg
+Local SHA-256:
+3b47b77b49ccd18ecf0aa58610a2047cc68a2e06a1de2e224295a1346aa2dc95
+Original image: Blue Marble east-hemisphere composite, 2048 by 2048 pixels.
+Source URL:
+https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/globe_east_2048.jpg
+Description and credits:
+https://science.nasa.gov/resource/blue-marble/
+
+Image credit: NASA Goddard Space Flight Center / Reto Stöckli / Robert Simmon.
+The image combines satellite observations; it is not a single-camera photograph.
+The project does not include NASA insignia, logotypes, or identifiable persons
+in this decorative image, and does not claim NASA approval or endorsement.
+
+NASA Images and Media Usage Guidelines:
+https://www.nasa.gov/nasa-brand-center/images-and-media/
+NASA Merchandise Guidelines and Approvals:
+https://www.nasa.gov/nasa-brand-center/merchandise-approvals/
+
+NASA states that its content generally is not subject to copyright in the
+United States, requires acknowledgement of the source, and excludes rights
+in separately identified third-party copyrighted material. Its commercial-use
+guidance prohibits express or implied endorsement and points commercial uses
+on products to its merchandise guidelines. This notice records provenance;
+it does not grant a new license or certify clearance of every commercial use.
+The unsigned test delivery is not evidence that the intended commercial
+product/decorative use has been reviewed or approved by NASA.
+
+The two other NASA textures in the supplied visual prototype are not used or
+bundled in this delivery. Source references and this notice are informational
+text; loading the UI does not contact NASA or any remote image service.

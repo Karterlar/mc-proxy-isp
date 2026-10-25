@@ -1,0 +1,115 @@
+From: MC Proxy maintainers
+Subject: [SOURCE CANDIDATE, NOT BUILT] Own the protected Canvas Blob snapshot
+
+Target: Chromium 150.0.7871.186 public source plus the exact ImageDataBuffer
+EncodeImage hook from fingerprint-chromium 148.0.7778.215 patch 012.
+This is not a patch against the unavailable private Chromium 150 fingerprint
+source, and applying it does not fix the currently shipped binary.
+
+diff --git a/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc b/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc
+index adb616d..86408ea 100644
+--- a/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc
++++ b/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc
+@@ -4,10 +4,14 @@
+ 
+ #include "third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.h"
+ 
++#include <string>
++
++#include "base/command_line.h"
+ #include "base/location.h"
+ #include "base/metrics/histogram_functions.h"
+ #include "base/metrics/histogram_macros.h"
+ #include "build/build_config.h"
++#include "components/ungoogled/ungoogled_switches.h"
+ #include "third_party/blink/public/platform/platform.h"
+ #include "third_party/blink/public/platform/task_type.h"
+ #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
+@@ -32,6 +36,7 @@
+ #include "third_party/blink/renderer/platform/wtf/functional.h"
+ #include "third_party/blink/renderer/platform/wtf/text/base64.h"
+ #include "third_party/blink/renderer/platform/wtf/text/strcat.h"
++#include "third_party/skia/include/core/SkBitmap.h"
+ #include "third_party/skia/include/core/SkSurface.h"
+ #include "third_party/skia/include/encode/SkPngRustEncoder.h"
+ 
+@@ -207,6 +212,49 @@ CanvasAsyncBlobCreator::CanvasAsyncBlobCreator(
+                            std::min(info.height(), max_dimension));
+         src_data_.reset(info, src_data_.addr(), src_data_.rowBytes());
+       }
++
++      const base::CommandLine* command_line =
++          base::CommandLine::ForCurrentProcess();
++      if (command_line->HasSwitch(switches::kFingerprint) &&
++          (!command_line->HasSwitch(switches::kDisableSpoofing) ||
++           command_line->GetSwitchValueASCII(switches::kDisableSpoofing)
++                   .find("canvas") == std::string::npos)) {
++        // All Blob encoders must consume one protected, owned snapshot. Never
++        // perturb the borrowed canvas pixels: repeated Worker exports reuse them.
++        bool protected_snapshot_loaded = false;
++        const SkColorType source_color_type = src_data_.colorType();
++        if (source_color_type == kRGBA_8888_SkColorType ||
++            source_color_type == kBGRA_8888_SkColorType) {
++          // Match the synchronous Canvas readback representation without losing
++          // the source color space or modifying premultiplied source storage.
++          const SkImageInfo protected_info = SkImageInfo::Make(
++              src_data_.width(), src_data_.height(), kRGBA_8888_SkColorType,
++              kUnpremul_SkAlphaType, src_data_.info().refColorSpace());
++          SkBitmap protected_pixels;
++          if (protected_pixels.tryAllocPixels(protected_info) &&
++              src_data_.readPixels(protected_pixels.pixmap(), 0, 0)) {
++            StaticBitmapImage::ShuffleSubchannelColorData(
++                protected_pixels.getPixels(), protected_info, 0, 0);
++            protected_pixels.setImmutable();
++            sk_sp<SkImage> protected_image = protected_pixels.asImage();
++            SkPixmap protected_pixmap;
++            if (protected_image &&
++                protected_image->peekPixels(&protected_pixmap)) {
++              // Keep ownership across idle tasks and encoder-thread handoff.
++              skia_image_ = std::move(protected_image);
++              src_data_ = protected_pixmap;
++              protected_snapshot_loaded = true;
++            }
++          }
++        }
++        if (!protected_snapshot_loaded) {
++          // Unsupported/HDR formats and allocation/readback failure must take
++          // the existing async failure path, never an unprotected fallback.
++          static_bitmap_image_loaded_ = false;
++          src_data_.reset();
++          skia_image_.reset();
++        }
++      }
+     }
+   }
+ 
+diff --git a/third_party/blink/renderer/platform/graphics/image_data_buffer.cc b/third_party/blink/renderer/platform/graphics/image_data_buffer.cc
+index 924e4ca..c76f655 100644
+--- a/third_party/blink/renderer/platform/graphics/image_data_buffer.cc
++++ b/third_party/blink/renderer/platform/graphics/image_data_buffer.cc
+@@ -32,11 +32,8 @@
+ 
+ #include "third_party/blink/renderer/platform/graphics/image_data_buffer.h"
+ 
+-#include "base/command_line.h"
+ #include "base/compiler_specific.h"
+ #include "base/memory/ptr_util.h"
+-#include "components/ungoogled/ungoogled_switches.h"
+-#include "third_party/blink/renderer/platform/graphics/static_bitmap_image.h"
+ #include "third_party/blink/renderer/platform/image-encoders/image_encoder_utils.h"
+ #include "third_party/blink/renderer/platform/wtf/text/base64.h"
+ #include "third_party/blink/renderer/platform/wtf/text/strcat.h"
+@@ -133,13 +130,6 @@ base::span<const uint8_t> ImageDataBuffer::PixelData() const {
+ bool ImageDataBuffer::EncodeImage(const ImageEncodingMimeType mime_type,
+                                   const double& quality,
+                                   Vector<unsigned char>* encoded_image) const {
+-  const base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+-  if (command_line->HasSwitch(switches::kFingerprint) &&
+-      (!command_line->HasSwitch(switches::kDisableSpoofing) ||
+-       command_line->GetSwitchValueASCII(switches::kDisableSpoofing).find("canvas") == std::string::npos)) {
+-    // shuffle subchannel color data within the pixmap
+-    StaticBitmapImage::ShuffleSubchannelColorData(pixmap_.writable_addr(), pixmap_.info(), 0, 0);
+-  }
+   return ImageEncoder::Encode(encoded_image, pixmap_, mime_type, quality);
+ }
+ 

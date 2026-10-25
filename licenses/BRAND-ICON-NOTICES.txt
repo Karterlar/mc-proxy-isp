@@ -1,0 +1,13 @@
+Official application and website identification icons
+
+Bundled locally in frontend/assets/brands/ for the application access page.
+Sources, acquisition dates and hashes are recorded beside the assets in
+website-sources.json, application-sources.json and codex-source.json.
+
+The marks identify third-party applications and websites. Trademark and
+copyright rights remain with their respective owners. Their inclusion does
+not imply sponsorship, affiliation or endorsement of MC Proxy.
+
+The original downloaded icon artwork is preserved. Local CSS controls only
+its display size and surrounding background for contrast. No icon request
+is sent to an external website when the application access page is opened.

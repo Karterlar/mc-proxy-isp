@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>MC Proxy · 管理员权限</title>
+  <link rel="icon" href="./assets/mc-proxy.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./admin-required.css">
+  <script defer src="./admin-required.js"></script>
+</head>
+<body>
+  <header class="titlebar">
+    <span class="titlebar-name">MC PROXY <span>启动检查</span></span>
+    <div class="window-controls">
+      <button id="minimizeWindow" type="button" aria-label="最小化窗口" title="最小化"><span class="minimize-glyph" aria-hidden="true"></span></button>
+      <button id="closeWindow" type="button" aria-label="退出 MC Proxy" title="退出"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </div>
+  </header>
+  <main>
+    <div class="brand"><img src="./assets/mc-proxy.svg" width="32" height="32" alt=""><strong id="productName">MC Proxy</strong><span id="version"></span></div>
+    <section class="gate" aria-labelledby="gateTitle" aria-describedby="gateDescription gateNotice">
+      <div class="gate-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Z"/><path d="M12 8v5m0 3h.01"/></svg></div>
+      <p class="eyebrow">启动需要你的确认</p>
+      <h1 id="gateTitle">需要管理员权限才能继续</h1>
+      <p id="gateDescription" class="description">TUN 虚拟网卡和网络保护需要 Windows 管理员权限。请确认系统提示后继续。</p>
+      <p id="gateNotice" class="locked-notice"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>当前连接操作已锁定，配置与许可保留。</span></p>
+      <div class="actions" aria-busy="true">
+        <button id="restartButton" type="button" class="primary" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg><span id="restartLabel">以管理员身份重新启动</span></button>
+        <button id="exitButton" type="button" class="secondary">退出</button>
+      </div>
+      <p id="gateStatus" class="status" role="status" aria-live="polite" aria-atomic="true">正在检查启动状态…</p>
+      <p id="gateError" class="error" role="alert" hidden></p>
+      <p id="gateHelp" class="help">看到 Windows 的权限提示时，选择“是”。取消后可以在这里重试。</p>
+    </section>
+  </main>
+</body>
+</html>

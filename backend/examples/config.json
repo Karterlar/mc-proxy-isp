@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "listen": { "host": "127.0.0.1", "port": 17890 },
+  "upstream": {
+    "type": "socks",
+    "host": "replace-with-provider-host.example",
+    "port": 1080,
+    "auth": "password"
+  },
+  "probe": {
+    "exitUrl": "https://api.ipify.org?format=json",
+    "expectedExitIps": [],
+    "timeoutMs": 15000
+  }
+}

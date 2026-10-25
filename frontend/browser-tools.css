@@ -1,0 +1,62 @@
+/* Optional browser tooling uses the existing workspace palette and scroll region. */
+.browser-profile-tools { min-width: 0; margin: 12px 0 16px; padding: 12px; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--surface-base); }
+.browser-profile-action { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.browser-profile-action > div { min-width: 0; }
+.browser-profile-action strong { font: 600 12px/1.7 var(--ui-font); }
+.browser-profile-action p { margin: 4px 0 0; }
+.browser-profile-action > button { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; white-space: normal; max-width: 210px; }
+.browser-profile-status { margin: 8px 0 0; overflow-wrap: anywhere; }
+.browser-profile-status:empty { display: none; }
+.browser-profile-status[data-error="true"] { color: var(--red); }
+.browser-profile-history { margin-top: 12px; border-top: 1px solid var(--surface-border); }
+.browser-profile-history > summary { padding: 12px 0 2px; color: var(--muted); font: 500 11px/1.6 var(--ui-font); cursor: pointer; }
+.browser-profile-history > p { margin: 8px 0; }
+.browser-profile-restore { display: flex; align-items: end; gap: 8px; }
+.browser-profile-restore .field { flex: 1; min-width: 0; margin-bottom: 0; }
+.browser-profile-restore select { width: 100%; min-width: 0; font: 11px/1.6 var(--ui-font); }
+.browser-profile-restore button { flex: none; min-height: 38px; }
+.browser-profile-tools button:focus-visible, .browser-profile-tools select:focus-visible, .browser-profile-history > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+@media (max-width: 520px) { .browser-profile-action { align-items: stretch; flex-direction: column; gap: 10px; } .browser-profile-action > button { width: 100%; max-width: none; } .browser-profile-restore { align-items: stretch; flex-direction: column; } .browser-profile-restore button { width: 100%; } }
+.fingerprint-settings { min-width: 0; margin: 14px 0; padding: 12px; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--surface-base); }
+.browser-engine-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.browser-engine-heading strong { font-size: 12px; line-height: 1.6; }
+.browser-check-state { flex: none; padding: 4px 8px; border: 1px solid var(--surface-border); border-radius: 20px; color: var(--muted); background: var(--surface-raised); font: 500 10px/1.5 var(--ui-font); }
+.browser-check-state[data-state="verified"] { border-color: #436257; color: var(--jade); background: #17382f; }
+.browser-check-state[data-state="failed"], .browser-check-state[data-state="mismatch"] { color: var(--red); border-color: var(--danger-border); background: var(--danger-bg); }
+.browser-check-state[data-state="stale"], .browser-check-state[data-state="configured"] { color: var(--amber); border-color: var(--warning-border); background: var(--warning-bg); }
+.browser-fingerprint-icon { width: 20px; height: 20px; color: var(--jade); }
+.fingerprint-options { margin-top: 12px; border-top: 1px solid var(--surface-border); }
+.fingerprint-options > summary { padding: 12px 0 2px; color: var(--ink); font-size: 11px; cursor: pointer; }
+.fingerprint-options[open] > summary { margin-bottom: 12px; }
+.fingerprint-field-grid { display: grid; min-width: 0; gap: 10px; }
+.fingerprint-field-grid .field { margin-bottom: 0; }
+.fingerprint-field-grid select { width: 100%; min-width: 0; font: 11px/1.6 var(--ui-font); }
+.fingerprint-switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0 4px; }
+.fingerprint-switch span { min-width: 0; }
+.fingerprint-switch strong { display: block; font: 600 11px/1.7 var(--ui-font); }
+.fingerprint-switch small { display: block; margin-top: 3px; color: var(--muted); font: 400 10px/1.7 var(--ui-font); }
+.fingerprint-switch .switch { flex: none; }
+.browser-tool-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.browser-tool-actions > button { min-width: 0; min-height: 36px; padding: 8px 11px; font-size: 11px; }
+.browser-observation-section { grid-column: 1 / -1; min-width: 0; margin: 0 0 18px; padding: 18px; border: 1px solid var(--surface-border); border-radius: 14px; background: var(--surface-raised); }
+.browser-observation-section > p { margin: 12px 0; font-size: 12px; line-height: 1.75; overflow-wrap: anywhere; }
+.browser-observation-link { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-top: 14px; padding: 12px; border: 1px solid var(--surface-border); border-radius: 9px; background: var(--surface-base); }
+.browser-observation-link .field { flex: 1; min-width: min(210px, 100%); margin-bottom: 0; }
+.browser-observation-link input { font: 11px/1.7 var(--ui-font); }
+.browser-observation-link > p { width: 100%; margin: 0; }
+.browser-observation-context { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 14px 0; }
+.browser-observation-context > div { min-width: 0; }
+.browser-observation-context dt { color: var(--muted); font: 500 10px/1.6 var(--ui-font); }
+.browser-observation-context dd { margin: 3px 0 0; color: var(--ink); font: 500 11px/1.65 var(--ui-font); overflow-wrap: anywhere; }
+.browser-observation-results, .application-diagnosis-layers { display: grid; gap: 8px; min-width: 0; }
+.browser-observation-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.browser-evidence-row { min-width: 0; padding: 11px 12px; border: 1px solid var(--surface-border); border-radius: 9px; background: var(--surface-base); }
+.browser-evidence-row > div { display: flex; align-items: start; justify-content: space-between; gap: 9px; }
+.browser-evidence-row strong { min-width: 0; font: 600 12px/1.6 var(--ui-font); }
+.browser-evidence-row p { margin: 6px 0 0; color: var(--muted); font: 400 11px/1.75 var(--ui-font); overflow-wrap: anywhere; white-space: pre-line; }
+.application-diagnosis { margin-top: 12px; }
+.application-diagnosis-layers { margin-top: 10px; }
+.application-diagnosis-layers .browser-evidence-row strong { font-size: 11px; }
+.browser-observation-section button:focus-visible, .fingerprint-settings button:focus-visible, .fingerprint-options > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+@media (min-width: 1040px) { .browser-observation-section { margin: 0; } .fingerprint-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .browser-observation-results { grid-template-columns: minmax(0, 1fr); } .browser-observation-section { padding: 15px; } .browser-observation-section .section-heading-line { gap: 8px; } .browser-observation-section .section-heading-line :is(h2, h3) { font-size: 15px; } .browser-tool-actions > .secondary-button { flex: 1 1 100%; } .browser-inline-choice { align-items: flex-start; } .browser-brand-choice { min-width: 0; } .browser-inline-choice select { max-width: 156px; } }

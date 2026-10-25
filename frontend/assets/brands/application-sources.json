@@ -1,0 +1,24 @@
+[
+  {
+    "name": "claude",
+    "file": "claude.png",
+    "page": "https://claude.com/",
+    "url": "https://assets.claude.com/95a868946ac8a31e5ff832e2899f294aa368b836.png?w=128&h=128",
+    "downloadedAt": "2026-10-07T16:45:36.499Z",
+    "bytes": 1198,
+    "sha256": "4004381309500f25e49a1ae639912ce307ea81da74cc383954a1ac8b9d343fe6",
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "chatgpt",
+    "file": "chatgpt.png",
+    "page": "https://openai.com/codex/",
+    "url": "https://images.ctfassets.net/kftzwdyauwt9/77tJ5U1tgxHMZflZ5m4Z24/ace4d8b6ad200d87ebcb69c466344343/Blossom_4k_Icon_1.png?w=128&q=90&fm=png",
+    "downloadedAt": "2026-10-07T16:45:38.010Z",
+    "bytes": 15566,
+    "sha256": "c1a05012ec3675d31a73c7a678a9ea952d57a100a0e0994c6b086af18690f655",
+    "width": 128,
+    "height": 128
+  }
+]

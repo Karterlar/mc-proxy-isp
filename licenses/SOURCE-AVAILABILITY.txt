@@ -1,0 +1,38 @@
+Source and binary provenance for bundled open-source components
+2026-10-04
+
+sing-box binary version: 1.14.2; no local core modification was performed.
+Official release / ZIP digest:
+  https://github.com/SagerNet/sing-box/releases/tag/v1.14.2
+  https://github.com/SagerNet/sing-box/releases/expanded_assets/v1.14.2
+Exact source tag and archive:
+  https://github.com/SagerNet/sing-box/tree/v1.14.2
+  https://github.com/SagerNet/sing-box/archive/refs/tags/v1.14.2.tar.gz
+Build recipe and dependency versions:
+  https://github.com/SagerNet/sing-box/blob/v1.14.2/.github/workflows/build.yml
+  https://github.com/SagerNet/sing-box/blob/v1.14.2/go.mod
+  https://github.com/SagerNet/sing-box/blob/v1.14.2/go.sum
+
+The release's .github/CRONET_GO_VERSION pins:
+  0d28acc44093df24b2526dea3d6ffefd6b0a54f0
+  https://github.com/SagerNet/cronet-go/tree/0d28acc44093df24b2526dea3d6ffefd6b0a54f0
+That tree documents Windows purego distribution of libcronet.dll and its pinned
+library modules. Fetch submodules recursively at their recorded revisions when
+collecting corresponding source, including naiveproxy/Chromium build inputs.
+  https://github.com/SagerNet/cronet-go/blob/0d28acc44093df24b2526dea3d6ffefd6b0a54f0/README.md
+
+Electron 44.5.1 source:
+  https://github.com/electron/electron/tree/v44.5.1
+js-yaml and argparse source:
+  https://github.com/nodeca/js-yaml
+  https://github.com/nodeca/argparse/tree/2.0.1
+
+These links identify upstream source. They are not a statement that a complete
+corresponding-source bundle or written GPL source offer has been delivered.
+Before commercial distribution, the operator must retain and make available
+the corresponding source/build inputs and complete component notices under
+the applicable license requirements. Review the interaction of GPL components
+and the application's proposed proprietary licensing before distributing.
+No restriction on software activation may prevent recipients' applicable
+open-source component rights. Application activation is implemented separately
+in the application licensing modules; it does not replace component licenses.

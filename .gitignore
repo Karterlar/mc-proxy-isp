@@ -1,0 +1,73 @@
+# Dependencies, builds and local tooling
+node_modules/
+.pnpm-store/
+.cache/
+dist/
+deliverables/
+__pycache__/
+*.py[cod]
+.aws/
+.codex/
+.workbuddy/
+.idea/
+.vscode/
+
+# Customer and operator state
+**/runtime/
+**/profiles/
+**/browser-profiles/
+**/private/
+**/reports/
+**/logs/
+**/.relay/
+**/.license/
+**/.licensing/
+**/.network-lock/
+**/.environment/
+**/.imported-vpn/
+**/.proxy-manager/
+*.log
+*.db
+*.db-*
+*.sqlite*
+*.local.json
+*.mcproxy.json
+*.license.json
+accounts.json
+enrollment.json
+device-key.json
+license-state.json
+licenses/client-license-config.json
+.env
+.env.*
+*.secrets.env
+!.env.example
+!**/*.env.example
+
+# Private signing material; the two exceptions are public localhost test data
+*.pem
+*.key
+*.pfx
+*.p12
+!tools/relay-service/test-fixtures/test-cert.pem
+!tools/relay-service/test-fixtures/test-key.pem
+
+# Browser dumps accidentally created beside an executable
+/Cache/
+/Code Cache/
+/Local Storage/
+/Network/
+/blob_storage/
+/ShaderCache/
+/GrShaderCache/
+/GPUPersistentCache/
+/Shared Dictionary/
+/Preferences
+/Local State
+/declarative_performance_observer.db*
+
+# Generated native build/verification records
+tools/fingerprint-browser/native/patch-apply-check.json
+tools/fingerprint-browser/native-engine/**/candidate-status.json
+tools/fingerprint-browser/native-engine/**/standalone-compile-status.json
+tools/fingerprint-browser/native-engine/**/application-matrix.json

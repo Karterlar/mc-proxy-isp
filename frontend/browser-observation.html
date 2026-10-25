@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MC Proxy · 浏览器实测</title><link rel="stylesheet" href="./browser-observation.css"><script type="module" src="./browser-observation.js"></script></head>
+<body><main>
+  <header><span class="eyebrow">MC PROXY · 用户环境检测</span><h1>核对当前用户环境</h1><p>比较主页面、同源 iframe、Worker 和实际请求头，找出身份与出口不一致的项目。</p><div class="evidence-key"><span>已采集：读到了值</span><span>本次匹配：与目标或其他上下文一致</span><span>尚未验证：没有足够证据</span></div></header>
+  <section class="notice"><strong>本次检测覆盖什么</strong><p>指纹检测在当前浏览器环境内进行；仅新建本机测试 iframe 和 Worker，不读取 Cookie、账号、密码、浏览历史、已有图片或其他页面。本机服务只记录白名单内的浏览器请求头。</p><p>网络检测会访问固定的 ipify、Cloudflare 出口服务和 Cloudflare STUN。ICE 地址只在当前页暂存，上传与复制仅包含分类计数；非预期网页出口会脱敏。接入受控 DNS 服务后，才核对四个唯一域名的权威查询回执。</p><p>读取值不等于配置已生效；本次一致不证明匿名性、重启稳定性或网站风控通过。浏览器页面自报不能证明它属于受管身份。</p></section>
+  <section class="toolbar"><div><label><input id="canvasEnabled" type="checkbox"> 额外计算 Canvas 测试图摘要</label><p id="target" class="muted">正在获取本次检测目标…</p></div><div class="actions"><button id="runButton" type="button" disabled>重新检测</button><button id="copyButton" type="button" class="secondary" disabled>复制脱敏摘要</button></div></section>
+  <p id="progress" role="status" aria-live="polite">正在连接本机诊断服务…</p>
+  <section id="results" class="results" aria-label="浏览器检测结果"></section>
+  <details id="localDetails"><summary>当前页面的详细读数（仅本机）</summary><p class="muted">这些读数来自此标签页，不证明全系统或其他浏览器使用同一出口。重新检测和关闭页面会清除本次临时 ICE 明细。</p><pre id="rawReadings">尚未测量</pre></details>
+  <footer>本页只提供诊断，不签发许可、不解锁网络、不更改系统代理。短效页面过期或连接变化后，请从 MC Proxy 重新启动检测。</footer>
+</main></body></html>

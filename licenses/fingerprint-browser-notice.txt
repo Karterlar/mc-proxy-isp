@@ -1,0 +1,85 @@
+MC Proxy optional browser component
+
+Current Windows x64 component: Chromium 150.0.7871.186, locally built from public
+source revision 0fcdce5f4fdec8d442d7df760cb541f1ca6e446d with the pinned
+ungoogled-chromium Windows recipe and MC Proxy's reviewed native patches.
+Current production-integrated independent-repair r2 revision:
+source-win-x64-150-0bf63619ff8d-694812300bff.
+Stage status: production integrated and acceptance completed; source only,
+no packaging. The default production reader accepted the promoted component.
+The active product release remains the source-selected runtime pin; candidate
+receipts alone do not authorize a product launch. No new installer is implied.
+
+r2 source manifest SHA-256:
+0bf63619ff8d5bae8e3cd4fae65f7f0f0bb19543456a0c4dd331e7feb7880680
+r2 successful build receipt SHA-256:
+694812300bff65b23089110fb29e215a94c6b06e7f21810569be1126d4e0cfc9
+r2 complete 364-file inventory SHA-256:
+9a7e3e2f7a2375c6a94e41451ceb7e17feebb33fda0135ad4f0ae5b28ac7dcdc
+Verified public cache / installed component directory:
+.cache/fingerprint-browser-source-150-r2
+<runtimeRoot>/fingerprint-engine-source-150-r2
+
+The build inputs and hashes are recorded in
+tools/fingerprint-browser/native-engine/source-manifest.json. Identity controls
+are derived from public adryfish/fingerprint-chromium 148 patches at commit
+13b89eae304123f0710f2d33fd0816a2f61d7ffc and ported to the pinned Chromium 150
+source. MC Proxy's owned-Canvas patch adds private-buffer native readback and
+Window/Worker Blob processing. The r2 repair uses position-independent full
+low-bit projection and a shared observable projection for normalized float
+channels. It removes the seed-only JavaScript device-memory value so Window,
+Worker and HTTP Client Hints share Chromium's native approximated-memory source.
+This is not a byte-for-byte rebuild of adryfish's
+150 binary and does not imply publication or endorsement of this build by that
+project. Source, complete component pins and bounded acceptance evidence:
+docs/components/fingerprint-browser-150.md.
+
+Protection is bounded. Repeated writeback, Float16 quantization and integer
+translation-majority counterexamples have been checked on the r2 candidate and
+again through the default production runtime reader. Production observation,
+profile/migration, local STUN and isolated bundle installation also passed.
+Final repair-stage acceptance records:
+deliverables/verification/2026-10-18-fingerprint-full-fix/repair-completion.json
+deliverables/verification/2026-10-18-fingerprint-full-fix/验收结果.txt
+Chosen +1/-1 composite color transforms can still recover original pixel values;
+they are explicitly recorded as unprotected, not accepted protection. The
+component does not promise complete device replacement, anonymity, account
+unlinkability or immunity from account bans.
+
+This repair does not bring Chromium 150 up to the reviewed Windows stable
+security baseline 155.0.8059.85. Advisory version checks and release-audit
+blockers report the debt; they do not download or apply security patches.
+The pinned ungoogled recipe also uses safe_browsing_mode=0 and no Google API
+credentials, so Google Chrome Safe Browsing service equivalence is not provided.
+Resource hashes and sandboxing do not replace upstream security maintenance.
+Chrome remains the default browser.
+
+Chromium source: https://chromium.googlesource.com/chromium/src/
+ungoogled-chromium: https://github.com/ungoogled-software/ungoogled-chromium
+Windows build recipe: https://github.com/ungoogled-software/ungoogled-chromium-windows
+Fingerprint identity source: https://github.com/adryfish/fingerprint-chromium
+
+The applicable BSD-3-Clause notice is included in fingerprint-chromium.txt.
+Retain Chromium's embedded credits, public runtime resources and dependency
+notices. Open chrome://credits in the companion browser to inspect its
+dependency notices. The fingerprint project's notice alone is not the complete
+Chromium dependency license inventory.
+
+Earlier source-built component source-win-x64-150-03f72bc4c004-cd01996c745d used
+the r1 source proof and revision directories. Its dated native/candidate/product
+acceptance records are preserved separately; none proves this r2 revision.
+
+Historical component canvas-win-x64-150-r1 used adryfish's pinned 150 binary plus
+a three-byte Canvas neighbour-row instruction correction in chrome.dll. Its
+exact hashes and reproduction details remain in
+backend/src/fingerprint-canvas-fix.mjs and the historical section of the component
+document. That binary and correction are retained for explicit rollback and
+migration testing; the active source-built component does not apply that patch
+or download that historical archive.
+
+MC Proxy's optional browser integration does not imply sponsorship or endorsement
+by Chromium, Google, ungoogled-chromium, adryfish, or any third-party service.
+Chrome remains the default browser. The optional fingerprint browser is isolated
+from ordinary Chrome/Edge profiles. An upgrade retains MC-managed profile paths,
+identity records, customer configuration and software authorization; no customer
+account data is included in this public component.

@@ -1,0 +1,41 @@
+[Unit]
+Description=MC Proxy authenticated TLS ISP relay
+After=network-online.target
+Wants=network-online.target
+Conflicts=proxypilot-relay-health.service
+
+[Service]
+Type=simple
+User=proxypilot-relay
+Group=proxypilot-relay
+ExecStart=/usr/bin/python3 -I -B /opt/mc-proxy-relay/relay.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mc-proxy-relay
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+LimitNOFILE=8192
+TasksMax=320
+MemoryMax=512M
+TimeoutStopSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

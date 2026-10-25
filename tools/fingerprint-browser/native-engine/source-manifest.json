@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "name": "MC Chromium 150 public source candidate",
+  "chromium": {
+    "version": "150.0.7871.186",
+    "revision": "0fcdce5f4fdec8d442d7df760cb541f1ca6e446d",
+    "archive": {
+      "filename": "chromium-150.0.7871.186-lite.tar.xz",
+      "bytes": 1668536212,
+      "sha256": "4ff4b64971c8097631a4f17d2f7fb050e8ede62b1b3c0f1ef0a1fffcac11bbb7",
+      "url": "https://commondatastorage.googleapis.com/chromium-browser-official/chromium-150.0.7871.186-lite.tar.xz"
+    }
+  },
+  "recipe": {
+    "windowsRevision": "da7182041a5101844ec2e9444bfead1dd3ebc70f",
+    "ungoogledRevision": "fd0378e4f20fa09e21b09beca71573d435d787cf"
+  },
+  "dependencyHashes": [
+    {
+      "name": "directx-headers",
+      "sha256": "6b5f677d1e2d9087b18e4f131b2256a0435ce21adc87eac8f2c425c4c48af471"
+    },
+    {
+      "name": "webauthn",
+      "sha256": "4d7381c87449804193f05e214ebce77b78b453e91f6cce549b6d7ba07947b245"
+    }
+  ],
+  "patches": [
+    {
+      "path": "identity/001-public-identity-150.patch",
+      "sha256": "fe8b2085d98663fb94d89abc3cfe12fbc5995a89079ae3fd6bd10676742a1131"
+    },
+    {
+      "path": "canvas/0002-canvas-owned-native-150.patch",
+      "sha256": "4ce0789a5a4f59a13d54e3ff1bfc54f4dd8682eaefa74d289708afdb5e62cc11"
+    }
+  ],
+  "build": {
+    "ready": true,
+    "target": "chrome",
+    "gnArgs": [
+      "chrome_pgo_phase=0",
+      "clang_use_chrome_plugins=false",
+      "disable_fieldtrial_testing_config=true",
+      "enable_hangout_services_extension=false",
+      "enable_mdns=false",
+      "enable_remoting=false",
+      "enable_reporting=false",
+      "enable_service_discovery=false",
+      "enable_widevine=true",
+      "exclude_unwind_tables=true",
+      "google_api_key=\"\"",
+      "google_default_client_id=\"\"",
+      "google_default_client_secret=\"\"",
+      "safe_browsing_mode=0",
+      "treat_warnings_as_errors=false",
+      "use_official_google_api_keys=false",
+      "use_unofficial_version_number=false",
+      "v8_drumbrake_bounds_checks=true",
+      "chrome_pgo_phase=2",
+      "enable_swiftshader=false",
+      "ffmpeg_branding=\"Chrome\"",
+      "is_clang=true",
+      "is_component_build=false",
+      "is_debug=false",
+      "is_official_build=true",
+      "proprietary_codecs=true",
+      "target_cpu=\"x64\"",
+      "use_sysroot=false",
+      "dcheck_always_on=false",
+      "blink_symbol_level=0",
+      "v8_symbol_level=0",
+      "symbol_level=0",
+      "enable_rust=true",
+      "enable_mse_mpeg2ts_stream_parser=true",
+      "chrome_pgo_phase=0"
+    ]
+  },
+  "acceptance": {
+    "sourcePortReviewed": true,
+    "standaloneCanvasCompiled": true,
+    "blinkCompiled": false,
+    "browserVerified": false,
+    "activated": false,
+    "packaged": false
+  }
+}

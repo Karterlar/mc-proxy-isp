@@ -1,0 +1,72 @@
+/* A header menu for the native window, independent of connection state. */
+.header-actions { position: relative; }
+.window-layout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: none;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised, #112436);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  -webkit-app-region: no-drag;
+  transition: background 160ms, border-color 160ms;
+}
+.window-layout-button:hover:enabled, .window-layout-button[aria-expanded="true"] { background: var(--surface-hover, #22384c); border-color: #55738a; }
+.window-layout-button > .icon { width: 15px; height: 15px; color: var(--muted); flex: none; }
+.window-layout-current { padding: 2px 5px; border-radius: 4px; background: #79cbb918; color: var(--accent, var(--jade)); font-size: 10px; font-weight: 500; }
+.window-layout-caret { width: 6px; height: 6px; margin: -3px 1px 0 1px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.window-layout-button[aria-expanded="true"] .window-layout-caret { margin-top: 3px; transform: rotate(225deg); }
+.window-layout-button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.window-layout-menu {
+  position: absolute;
+  z-index: 35;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(312px, calc(100vw - 32px));
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+  padding: 15px;
+  border: 1px solid var(--surface-border, #3b536a);
+  border-radius: 13px;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 16px 54px rgb(0 0 0 / 35%);
+  scrollbar-width: thin;
+  animation: layout-menu-enter 160ms var(--ease);
+}
+.window-layout-menu-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
+.window-layout-menu-header h2 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 600; }
+.window-layout-menu-header .icon-button { width: 27px; height: 27px; border: 0; background: transparent; font-size: 20px; }
+.window-layout-menu > p { margin: 0 0 13px; color: var(--subtle); font-size: 11px; line-height: 1.7; }
+.window-layout-presets { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.window-layout-option { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-base, #0b1727); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background 160ms, border-color 160ms; }
+.window-layout-option:hover:enabled { border-color: #608599; background: var(--surface-hover, #22384c); }
+.window-layout-option[aria-pressed="true"] { border-color: #52796c; background: var(--mint); }
+.window-layout-option[aria-pressed="true"]:hover:enabled { border-color: var(--jade); }
+.window-layout-option:disabled { cursor: not-allowed; }
+.window-layout-option:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.window-layout-copy { flex: 1; min-width: 0; }
+.window-layout-selected { flex: none; margin-left: auto; color: var(--accent, var(--jade)); font-size: 10px; font-weight: 600; white-space: nowrap; }
+.window-layout-option strong { display: block; color: var(--ink); font-size: 12px; font-weight: 600; }
+.window-layout-option small { display: block; margin-top: 3px; color: var(--subtle); font-size: 10px; }
+.window-layout-preview { display: grid; place-items: center; flex: none; width: 45px; height: 41px; }
+.window-layout-preview::before { content: ""; display: block; border: 1px solid #608599; border-radius: 3px; background: linear-gradient(#1e384c 6px, #122536 6px); }
+.window-layout-preview-wide::before { width: 40px; height: 28px; }
+.window-layout-preview-standard::before { width: 35px; height: 32px; }
+.window-layout-preview-tall::before { width: 23px; height: 39px; }
+.window-layout-menu #windowLayoutStatus { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.window-layout-menu .layout-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes layout-menu-enter { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (max-width: 519px) {
+  .window-layout-button { gap: 6px; padding-inline: 8px; min-height: 32px; font-size: 11px; }
+  .window-layout-button > .icon, .window-layout-current { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .window-layout-menu { animation: none; } .window-layout-button, .window-layout-option { transition: none; } }

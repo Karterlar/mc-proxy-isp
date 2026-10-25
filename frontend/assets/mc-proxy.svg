@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="body" x1="64" y1="28" x2="448" y2="490" gradientUnits="userSpaceOnUse"><stop stop-color="#253A39"/><stop offset=".5" stop-color="#142524"/><stop offset="1" stop-color="#0B1515"/></linearGradient>
+    <linearGradient id="edge" x1="70" y1="30" x2="440" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#647B71"/><stop offset=".44" stop-color="#29413A"/><stop offset="1" stop-color="#29423C"/></linearGradient>
+    <linearGradient id="ribbon" x1="112" y1="169" x2="392" y2="343" gradientUnits="userSpaceOnUse"><stop stop-color="#E2F8EB"/><stop offset=".43" stop-color="#B4EACF"/><stop offset="1" stop-color="#63CBA6"/></linearGradient>
+    <radialGradient id="light" cx="0" cy="0" r="1" gradientTransform="translate(251 165) rotate(90) scale(310)" gradientUnits="userSpaceOnUse"><stop stop-color="#6CA88A" stop-opacity=".2"/><stop offset="1" stop-color="#6CA88A" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect x="20" y="20" width="472" height="472" rx="124" fill="url(#body)"/>
+  <rect x="21" y="21" width="470" height="470" rx="123" stroke="url(#edge)" stroke-width="2"/>
+  <rect x="25" y="25" width="462" height="462" rx="119" fill="url(#light)"/>
+  <path d="M91 367C125 403 188 422 255 422C323 422 384 402 420 365" stroke="#A0C4B3" stroke-opacity=".12" stroke-width="1.5"/>
+  <path d="M113 321V192L190 271L267 192V321" stroke="#050C0B" stroke-opacity=".38" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 8)"/>
+  <path d="M397 208C382 191 364 183 341 183C296 183 264 215 264 257C264 299 296 331 341 331C364 331 382 323 397 306" stroke="#050C0B" stroke-opacity=".38" stroke-width="32" stroke-linecap="round" transform="translate(0 8)"/>
+  <path d="M113 321V192L190 271L267 192V321" stroke="url(#ribbon)" stroke-width="27" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M397 208C382 191 364 183 341 183C296 183 264 215 264 257C264 299 296 331 341 331C364 331 382 323 397 306" stroke="url(#ribbon)" stroke-width="27" stroke-linecap="round"/>
+  <circle cx="397" cy="257" r="9" fill="#A3E8CB"/>
+</svg>

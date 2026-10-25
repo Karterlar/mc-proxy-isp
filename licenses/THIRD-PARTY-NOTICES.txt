@@ -1,0 +1,66 @@
+MC Proxy unsigned test delivery — third-party component inventory
+2026-10-04
+
+This directory preserves component notices; it does not grant a new license to
+the MC Proxy application or certify completion of commercial distribution review.
+
+Electron 44.5.1 — MIT
+  Preserved: Electron-LICENSE.txt (copied without edits from installed Electron).
+  Origin: https://github.com/electron/electron/tree/v44.5.1
+  The installed application directory also carries LICENSE.electron.txt and
+  LICENSES.chromium.html from the same Electron runtime. The HTML includes
+  Chromium and bundled dependency notices; retain it with all distributions.
+
+Chromium / Electron bundled components — multiple licenses
+  Preserved: LICENSES.chromium.html beside the application executable.
+  Chromium-LICENSE.txt contains Chromium's top-level BSD notice. It does not
+  replace the component-specific HTML or libcronet notices.
+  Origin: https://chromium.googlesource.com/chromium/src/+/refs/heads/main/LICENSE
+
+js-yaml 4.3.2 — MIT
+  Preserved: js-yaml-LICENSE.txt, copied from the installed dependency.
+  Origin: https://github.com/nodeca/js-yaml
+argparse 2.0.1 (js-yaml dependency) — Python Software Foundation License
+  Preserved: argparse-LICENSE.txt, copied from the installed dependency.
+  Origin: https://github.com/nodeca/argparse/tree/2.0.1
+
+sing-box 1.14.2 Windows amd64 — GPL version 3 or later
+  Preserved: sing-box-LICENSE.txt and GPL-3.0.txt; the original LICENSE also
+  remains beside sing-box.exe. The upstream notice additionally restricts
+  using the upstream name or implying association for derivative works.
+  Binary provenance and exact hashes: core-provenance.json.
+  Source/build access: SOURCE-AVAILABILITY.txt.
+
+libcronet.dll, shipped in the same official sing-box ZIP
+  Exact binary hash and upstream cronet-go revision: core-provenance.json.
+  cronet-go bindings notice: cronet-go-LICENSE.txt (GPL version 3 or later).
+  The dynamic library contains Chromium/naiveproxy-derived components with
+  additional notices. The bindings' GPL notice and Electron's Chromium HTML
+  are not evidence that all licenses for this separate DLL are included.
+  Complete revision-specific DLL dependency notices and corresponding build
+  source must be reviewed before commercial redistribution.
+
+Binary release audits track the following outstanding requirements
+(the generated DELIVERY-AUDIT.json is not part of this source export):
+  commercial code signing, GPL distribution review, complete libcronet notices,
+  and clean-machine installation/upgrade/uninstall/recovery acceptance.
+  This unsigned test build must not be described as a trusted signed release.
+
+Mona Sans variable font — SIL Open Font License 1.1
+  Bundled unchanged: frontend/assets/MonaSans-VF.woff2.
+  Preserved copyright, reserved font name and complete terms: MonaSans-OFL.txt.
+  Origin and license: https://github.com/github/mona-sans
+  The font is bundled with the application, not sold separately. The font's
+  license does not relicense the MC Proxy application.
+
+NASA Blue Marble east-hemisphere composite — NASA media usage guidance
+  Bundled: frontend/assets/earth-nasa-globe-east.jpg.
+  Image credit: NASA Goddard Space Flight Center / Reto Stöckli / Robert Simmon.
+  Exact source, local hash and use limitations: NASA-IMAGERY-NOTICES.txt.
+  No NASA insignia or product endorsement is asserted. Intended commercial
+  decorative/product use remains subject to the applicable NASA guidance.
+
+Official application and website identification icons
+  Bundled locally: frontend/assets/brands/.
+  Source URLs and hashes are preserved with the assets.
+  Identification and trademark notice: BRAND-ICON-NOTICES.txt.

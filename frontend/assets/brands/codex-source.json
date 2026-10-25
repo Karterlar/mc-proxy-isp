@@ -1,0 +1,18 @@
+{
+  "name": "codex",
+  "file": "codex.png",
+  "sourceType": "official-installed-application-asset",
+  "officialReference": "https://help.openai.com/en/articles/20001276",
+  "officialProductPage": "https://openai.com/codex/",
+  "packageName": "OpenAI.Codex",
+  "packageVersion": "26.930.4958.0",
+  "publisher": "CN=50BDFD77-8903-4850-9FFE-6E8522F64D5B",
+  "assetArchive": "app/resources/app.asar",
+  "assetPath": "webview/assets/codex-app-ga-logo-3e5209898ca3.png",
+  "fetchedAt": "2026-10-07T16:49:45.0191888Z",
+  "width": 104,
+  "height": 104,
+  "bytes": 9974,
+  "sha256": "8e82b26c98a10e45798ce48124515720657f7735fb8d0853b3f087eaa8a6b74e",
+  "note": "Original Codex app GA logo from OpenAI-signed Windows package; purple-blue cloud shape with white terminal chevron and underscore. No image modification."
+}

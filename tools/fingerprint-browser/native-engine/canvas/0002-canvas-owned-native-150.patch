@@ -1,0 +1,701 @@
+diff --git a/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc b/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc
+index adb616d..66688ce 100644
+--- a/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc
++++ b/third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "third_party/blink/renderer/core/html/canvas/canvas_async_blob_creator.h"
+ 
++#include "third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h"
++
+ #include "base/location.h"
+ #include "base/metrics/histogram_functions.h"
+ #include "base/metrics/histogram_macros.h"
+@@ -178,6 +180,10 @@ CanvasAsyncBlobCreator::CanvasAsyncBlobCreator(
+   // necessary. May return nullptr if GPU context lost or readback buffer
+   // allocation failed.
+   image_ = image->MakeUnaccelerated();
++  // This constructor serves both Window idle and Worker encoders. Keep a
++  // private snapshot alive across async work; never alter borrowed src_data_.
++  image_ = MakeCanvasFingerprintCopy(std::move(image_),
++                                    CanvasFingerprintSeed());
+ 
+   if (image_) {
+     skia_image_ = image_->PaintImageForCurrentFrame().GetSwSkImage();
+diff --git a/third_party/blink/renderer/core/html/canvas/html_canvas_element.cc b/third_party/blink/renderer/core/html/canvas/html_canvas_element.cc
+index ce8231f..f19ab83 100644
+--- a/third_party/blink/renderer/core/html/canvas/html_canvas_element.cc
++++ b/third_party/blink/renderer/core/html/canvas/html_canvas_element.cc
+@@ -27,6 +27,8 @@
+ 
+ #include "third_party/blink/renderer/core/html/canvas/html_canvas_element.h"
+ 
++#include "third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h"
++
+ #include <math.h>
+ 
+ #include <limits>
+@@ -1310,6 +1312,8 @@ String HTMLCanvasElement::ToDataURLInternal(
+           mime_type, ImageEncoderUtils::kEncodeReasonToDataURL);
+ 
+   scoped_refptr<StaticBitmapImage> image_bitmap = Snapshot(source_buffer);
++  image_bitmap = MakeCanvasFingerprintCopy(std::move(image_bitmap),
++                                          CanvasFingerprintSeed());
+   if (image_bitmap) {
+     std::unique_ptr<ImageDataBuffer> data_buffer =
+         ImageDataBuffer::Create(image_bitmap);
+diff --git a/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc b/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
+index f939e8d..1cc7d6b 100644
+--- a/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
++++ b/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.h"
+ 
++#include "third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h"
++
+ #include <cmath>
+ #include <cstdint>
+ #include <cstdlib>
+@@ -513,6 +515,15 @@ ImageData* BaseRenderingContext2D::getImageDataInternal(
+     }
+   }
+ 
++  // Only the fresh returned buffer is modified; source resources remain exact.
++  const uint32_t fingerprint_seed = CanvasFingerprintSeed();
++  if (fingerprint_seed &&
++      !ProtectCanvasOwnedPixmap(image_data->GetSkPixmap(), sx, sy,
++                                fingerprint_seed)) {
++    exception_state.ThrowRangeError("Unable to allocate protected Canvas readback");
++    return nullptr;
++  }
++
+   return image_data;
+ }
+ 
+diff --git a/third_party/blink/renderer/platform/BUILD.gn b/third_party/blink/renderer/platform/BUILD.gn
+index ac8478a..47edfae 100644
+--- a/third_party/blink/renderer/platform/BUILD.gn
++++ b/third_party/blink/renderer/platform/BUILD.gn
+@@ -1080,6 +1080,9 @@ component("platform") {
+     "graphics/image.h",
+     "graphics/image_data_buffer.cc",
+     "graphics/image_data_buffer.h",
++    "graphics/mc_canvas_fingerprint.cc",
++    "graphics/mc_canvas_fingerprint.h",
++    "graphics/mc_canvas_noise.h",
+     "graphics/image_decoder_wrapper.cc",
+     "graphics/image_decoder_wrapper.h",
+     "graphics/image_decoding_store.cc",
+@@ -2316,6 +2319,7 @@ source_set("blink_platform_unittests_sources") {
+     "graphics/parkable_image_segment_reader_test.cc",
+     "graphics/parkable_image_test.cc",
+     "graphics/raster_dark_mode_filter_impl_test.cc",
++    "graphics/mc_canvas_fingerprint_test.cc",
+     "graphics/static_bitmap_image_transform_test.cc",
+     "graphics/video_frame_image_util_test.cc",
+     "graphics/video_frame_resource_provider_test.cc",
+diff --git a/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.cc b/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.cc
+new file mode 100644
+index 0000000..c2e486b
+--- /dev/null
++++ b/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.cc
+@@ -0,0 +1,107 @@
++// Copyright 2026 MC Proxy contributors.
++// SPDX-License-Identifier: MIT
++#include "third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h"
++
++#include <optional>
++#include <span>
++#include <string>
++#include <utility>
++
++#include "base/command_line.h"
++#include "base/compiler_specific.h"
++#include "base/strings/string_number_conversions.h"
++#include "base/strings/string_split.h"
++#include "third_party/blink/renderer/platform/graphics/mc_canvas_noise.h"
++#include "third_party/blink/renderer/platform/graphics/unaccelerated_static_bitmap_image.h"
++#include "third_party/skia/include/core/SkData.h"
++#include "third_party/skia/include/core/SkImage.h"
++
++namespace blink {
++namespace {
++
++std::optional<mc_proxy::canvas::PixelFormat> Format(SkColorType type) {
++  switch (type) {
++    case kRGBA_8888_SkColorType:
++      return mc_proxy::canvas::PixelFormat::kRgba8888;
++    case kRGBA_F16Norm_SkColorType:
++    case kRGBA_F16_SkColorType:
++      return mc_proxy::canvas::PixelFormat::kRgbaF16;
++    case kRGBA_F32_SkColorType:
++      return mc_proxy::canvas::PixelFormat::kRgbaF32;
++    default:
++      return std::nullopt;
++  }
++}
++
++}  // namespace
++
++uint32_t CanvasFingerprintSeed() {
++  const base::CommandLine* command = base::CommandLine::ForCurrentProcess();
++  const std::string disabled = command->GetSwitchValueASCII("disable-spoofing");
++  for (const auto part : base::SplitStringPiece(
++           disabled, ",", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY)) {
++    if (part == "canvas") return 0;
++  }
++  const std::string input = command->GetSwitchValueASCII("fingerprint");
++  if (input.empty()) return 0;
++  for (const char digit : input) if (digit < '0' || digit > '9') return 0;
++  uint32_t seed = 0;
++  if (!base::StringToUint(input, &seed)) return 0;
++  return seed;
++}
++
++bool ProtectCanvasOwnedPixmap(const SkPixmap& destination,
++                              int64_t origin_x, int64_t origin_y,
++                              uint32_t seed) {
++  if (!seed) return true;
++  const auto format = Format(destination.colorType());
++  const size_t size = destination.computeByteSize();
++  if (!format || destination.width() < 0 || destination.height() < 0 ||
++      destination.alphaType() == kPremul_SkAlphaType ||
++      SkImageInfo::ByteSizeOverflowed(size) || (!destination.addr() && size)) {
++    return false;
++  }
++  // SAFETY: Callers pass a newly allocated ImageData or private SkData pixmap.
++  // Skia computes its byte extent from the validated format, dimensions and
++  // rowBytes; the overflow/null guards above reject invalid extents. Only this
++  // external Skia pointer-to-bounded-view bridge needs an unsafe annotation.
++  const auto bytes = UNSAFE_BUFFERS(std::span<uint8_t>(
++      static_cast<uint8_t*>(destination.writable_addr()), size));
++  return mc_proxy::canvas::ApplyToOwnedUnpremul(
++      bytes,
++      static_cast<size_t>(destination.width()),
++      static_cast<size_t>(destination.height()), destination.rowBytes(),
++      *format, origin_x, origin_y, seed);
++}
++
++scoped_refptr<StaticBitmapImage> MakeCanvasFingerprintCopy(
++    scoped_refptr<StaticBitmapImage> source, uint32_t seed) {
++  if (!source || !seed) return source;
++  PaintImage paint = source->PaintImageForCurrentFrame();
++  if (!paint || paint.IsPaintWorklet()) return nullptr;
++  SkImageInfo info = paint.GetSkImageInfo();
++  if (info.isEmpty()) return nullptr;
++  // Default SDR snapshot: canonical RGBA byte order, unpremultiplied, original
++  // colorspace. Do not assume N32 == RGBA (Windows N32 commonly means BGRA).
++  // Floating sources retain native channel precision and HDR/color metadata.
++  const auto native_format = Format(info.colorType());
++  if (!native_format || *native_format == mc_proxy::canvas::PixelFormat::kRgba8888)
++    info = info.makeColorType(kRGBA_8888_SkColorType);
++  info = info.makeAlphaType(kUnpremul_SkAlphaType);
++  const size_t row_bytes = info.minRowBytes();
++  const size_t size = info.computeByteSize(row_bytes);
++  if (SkImageInfo::ByteSizeOverflowed(size)) return nullptr;
++  sk_sp<SkData> owned = SkData::MakeUninitialized(size);
++  if (!owned || !paint.readPixels(info, owned->writable_data(), row_bytes, 0, 0))
++    return nullptr;
++  const SkPixmap destination(info, owned->writable_data(), row_bytes);
++  if (!ProtectCanvasOwnedPixmap(destination, 0, 0, seed)) return nullptr;
++  sk_sp<SkImage> image = SkImages::RasterFromData(info, std::move(owned), row_bytes);
++  if (!image) return nullptr;
++  auto result = UnacceleratedStaticBitmapImage::Create(
++      std::move(image), source->Orientation(), source->GetHdrMetadata());
++  if (result) result->SetOriginClean(source->OriginClean());
++  return result;
++}
++
++}  // namespace blink
+diff --git a/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h b/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h
+new file mode 100644
+index 0000000..5c1f79e
+--- /dev/null
++++ b/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h
+@@ -0,0 +1,36 @@
++// Copyright 2026 MC Proxy contributors.
++// SPDX-License-Identifier: MIT
++#ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_MC_CANVAS_FINGERPRINT_H_
++#define THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_MC_CANVAS_FINGERPRINT_H_
++
++#include <cstdint>
++
++#include "base/memory/scoped_refptr.h"
++#include "third_party/blink/renderer/platform/graphics/static_bitmap_image.h"
++#include "third_party/blink/renderer/platform/platform_export.h"
++#include "third_party/skia/include/core/SkPixmap.h"
++
++namespace blink {
++
++// Zero means disabled. Strict nonzero uint32 --fingerprint and exact comma-list
++// --disable-spoofing=canvas compatibility, in both Window and worker renderers.
++PLATFORM_EXPORT uint32_t CanvasFingerprintSeed();
++
++// Only call with the newly allocated getImageData destination, after Chromium
++// has performed its own validation, clipping, colorspace/format conversion and
++// readPixels. Never call with a source canvas's borrowed backing pixmap.
++PLATFORM_EXPORT bool ProtectCanvasOwnedPixmap(const SkPixmap& destination,
++                                            int64_t origin_x,
++                                            int64_t origin_y,
++                                            uint32_t seed);
++
++// Makes a separate unpremultiplied, CPU-owned snapshot for encoding. No mutation
++// of any source PaintImage/SkPixmap; the result retains its private SkData until
++// both idle main-thread and worker encoders finish. nullptr signals a normal
++// allocation/readback failure, as Chromium's existing encoding paths expect.
++PLATFORM_EXPORT scoped_refptr<StaticBitmapImage> MakeCanvasFingerprintCopy(
++    scoped_refptr<StaticBitmapImage> source, uint32_t seed);
++
++}  // namespace blink
++
++#endif
+diff --git a/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint_test.cc b/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint_test.cc
+new file mode 100644
+index 0000000..2248af8
+--- /dev/null
++++ b/third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint_test.cc
+@@ -0,0 +1,227 @@
++// Copyright 2026 MC Proxy contributors.
++// SPDX-License-Identifier: MIT
++// Native Blink tests; run against the newly compiled component after each edit.
++#include "third_party/blink/renderer/platform/graphics/mc_canvas_fingerprint.h"
++
++#include <algorithm>
++#include <array>
++#include <span>
++#include <vector>
++
++#include "base/test/scoped_command_line.h"
++#include "testing/gtest/include/gtest/gtest.h"
++#include "third_party/blink/renderer/platform/graphics/image_data_buffer.h"
++#include "third_party/blink/renderer/platform/graphics/unaccelerated_static_bitmap_image.h"
++#include "third_party/blink/renderer/platform/image-encoders/image_encoder.h"
++#include "third_party/skia/include/core/SkBitmap.h"
++#include "third_party/skia/include/core/SkColorSpace.h"
++#include "third_party/skia/include/core/SkImage.h"
++
++namespace blink {
++namespace {
++
++scoped_refptr<StaticBitmapImage> Fixture(SkColorType type) {
++  const SkImageInfo info = SkImageInfo::Make(280, 100, type,
++                                           kUnpremul_SkAlphaType,
++                                           SkColorSpace::MakeSRGB());
++  SkBitmap bitmap;
++  if (!bitmap.tryAllocPixels(info)) return nullptr;
++  // Draw through a separate 8-bit source conversion to populate every supported
++  // destination with the same nonuniform semantic colors and transparent alpha.
++  std::vector<uint8_t> bytes(280 * 100 * 4);
++  for (size_t y = 0; y < 100; ++y) for (size_t x = 0; x < 280; ++x) {
++    const size_t at = (y * 280 + x) * 4;
++    bytes[at] = (x * 7 + y * 3) & 255;
++    bytes[at + 1] = (x * 11 + y * 5) & 255;
++    bytes[at + 2] = (x * 13 + y * 17) & 255;
++    bytes[at + 3] = std::array<uint8_t, 5>{0, 64, 128, 192, 255}[(x + y) % 5];
++  }
++  const SkPixmap source(info.makeColorType(kRGBA_8888_SkColorType),
++                        bytes.data(), 280 * 4);
++  if (!bitmap.writePixels(source)) return nullptr;
++  return UnacceleratedStaticBitmapImage::Create(SkImages::RasterFromBitmap(bitmap));
++}
++
++std::vector<uint8_t> Read(scoped_refptr<StaticBitmapImage> image) {
++  if (!image) return {};
++  PaintImage paint = image->PaintImageForCurrentFrame();
++  const SkImageInfo info = paint.GetSkImageInfo();
++  const size_t size = info.computeByteSize(info.minRowBytes());
++  if (SkImageInfo::ByteSizeOverflowed(size)) return {};
++  std::vector<uint8_t> bytes(size);
++  if (!paint.readPixels(info, bytes.data(), info.minRowBytes(), 0, 0)) return {};
++  return bytes;
++}
++
++std::vector<uint8_t> ReadRgba8(scoped_refptr<StaticBitmapImage> image) {
++  if (!image) return {};
++  PaintImage paint = image->PaintImageForCurrentFrame();
++  const SkImageInfo info = paint.GetSkImageInfo().makeColorType(kRGBA_8888_SkColorType);
++  std::vector<uint8_t> bytes(info.computeByteSize(info.minRowBytes()));
++  if (!paint.readPixels(info, bytes.data(), info.minRowBytes(), 0, 0)) return {};
++  return bytes;
++}
++
++scoped_refptr<StaticBitmapImage> AllSdrCodes(SkColorType type) {
++  const SkImageInfo info = SkImageInfo::Make(256, 1, type,
++                                           kUnpremul_SkAlphaType,
++                                           SkColorSpace::MakeSRGB());
++  SkBitmap bitmap;
++  if (!bitmap.tryAllocPixels(info)) return nullptr;
++  std::vector<uint8_t> bytes(256 * 4);
++  for (size_t x = 0; x < 256; ++x) {
++    for (size_t c = 0; c < 3; ++c) bytes[x * 4 + c] = static_cast<uint8_t>(x);
++    bytes[x * 4 + 3] = 255;
++  }
++  const SkPixmap source(info.makeColorType(kRGBA_8888_SkColorType),
++                        bytes.data(), 256 * 4);
++  if (!bitmap.writePixels(source)) return nullptr;
++  return UnacceleratedStaticBitmapImage::Create(SkImages::RasterFromBitmap(bitmap));
++}
++
++TEST(McCanvasFingerprintTest, StrictSeedAndExactDisableToken) {
++  base::test::ScopedCommandLine command;
++  auto* args = command.GetProcessCommandLine();
++  args->AppendSwitchASCII("fingerprint", "4294967295");
++  EXPECT_EQ(CanvasFingerprintSeed(), 4294967295u);
++  args->AppendSwitchASCII("disable-spoofing", "font,audio,canvas2,gpu");
++  EXPECT_EQ(CanvasFingerprintSeed(), 4294967295u);
++  args->AppendSwitchASCII("disable-spoofing", "font, canvas ,gpu");
++  EXPECT_EQ(CanvasFingerprintSeed(), 0u);
++  args->RemoveSwitch("disable-spoofing");
++  for (const char* invalid : {"0", "-1", "+1", " 1", "1 ", "4294967296", "1.0"}) {
++    args->AppendSwitchASCII("fingerprint", invalid);
++    EXPECT_EQ(CanvasFingerprintSeed(), 0u) << invalid;
++  }
++}
++
++TEST(McCanvasFingerprintTest, StablePrivateSdrCopyPreservesOriginalAndAlpha) {
++  auto source = Fixture(kRGBA_8888_SkColorType);
++  ASSERT_TRUE(source);
++  const auto original = Read(source);
++  ASSERT_FALSE(original.empty());
++  auto first = MakeCanvasFingerprintCopy(source, 3324349380u);
++  ASSERT_TRUE(first);
++  const auto expected = Read(first);
++  ASSERT_NE(expected, original);
++  EXPECT_EQ(Read(source), original);
++  EXPECT_NE(Read(MakeCanvasFingerprintCopy(source, 1)), expected);
++  for (int repeat = 0; repeat < 100; ++repeat)
++    EXPECT_EQ(Read(MakeCanvasFingerprintCopy(source, 3324349380u)), expected);
++  for (size_t at = 0; at < expected.size(); at += 4) {
++    EXPECT_EQ(expected[at + 3], original[at + 3]);
++    if (!original[at + 3])
++      EXPECT_TRUE(std::ranges::equal(std::span(expected).subspan(at, 4),
++                                    std::span(original).subspan(at, 4)));
++  }
++  EXPECT_EQ(MakeCanvasFingerprintCopy(source, 0).get(), source.get());
++  EXPECT_EQ(Read(source), original);
++}
++
++TEST(McCanvasFingerprintTest, FloatPrecisionAndNativeEncoderSupportAreRetained) {
++  for (SkColorType type : {kRGBA_F16_SkColorType, kRGBA_F32_SkColorType}) {
++    auto source = Fixture(type);
++    ASSERT_TRUE(source);
++    const auto original = Read(source);
++    auto protected_copy = MakeCanvasFingerprintCopy(source, 3324349380u);
++    ASSERT_TRUE(protected_copy);
++    EXPECT_EQ(protected_copy->PaintImageForCurrentFrame().GetSkImageInfo().colorType(), type);
++    EXPECT_EQ(Read(source), original);
++    const auto actual = Read(protected_copy);
++    ASSERT_EQ(actual.size(), original.size());
++    const size_t channel_bytes = type == kRGBA_F16_SkColorType ? 2 : 4;
++    for (size_t at = 0; at < actual.size(); at += channel_bytes * 4)
++      EXPECT_TRUE(std::ranges::equal(
++          std::span(actual).subspan(at + channel_bytes * 3, channel_bytes),
++          std::span(original).subspan(at + channel_bytes * 3, channel_bytes)));
++    // This guard compares against the same stock encoder and format. Existing
++    // unsupported formats remain unsupported; the patch must not turn every HDR
++    // export into EncodingError. A successful export alone is not proof that a
++    // lossy or color-converting encoder retains the protected low bits.
++    for (ImageEncodingMimeType mime : {kMimeTypePng, kMimeTypeJpeg, kMimeTypeWebp}) {
++      auto original_buffer = ImageDataBuffer::Create(source);
++      auto protected_buffer = ImageDataBuffer::Create(protected_copy);
++      ASSERT_TRUE(original_buffer); ASSERT_TRUE(protected_buffer);
++      Vector<unsigned char> native_bytes, protected_bytes;
++      const bool native_ok = original_buffer->EncodeImage(mime, .9, &native_bytes);
++      const bool protected_ok = protected_buffer->EncodeImage(mime, .9, &protected_bytes);
++      EXPECT_EQ(protected_ok, native_ok);
++      if (native_ok) EXPECT_FALSE(protected_bytes.empty());
++    }
++  }
++}
++
++TEST(McCanvasFingerprintTest, WritebackCannotUndoReadbackProjection) {
++  for (SkColorType type : {kRGBA_8888_SkColorType, kRGBA_F16_SkColorType,
++                           kRGBA_F32_SkColorType}) {
++    auto source = AllSdrCodes(type);
++    ASSERT_TRUE(source);
++    const auto original = Read(source);
++    for (uint32_t seed : {123456789u, 987654321u, 3324349380u}) {
++      auto first = MakeCanvasFingerprintCopy(source, seed);
++      ASSERT_TRUE(first);
++      const auto observed = Read(first);
++      ASSERT_NE(observed, original);
++      for (int repeat = 0; repeat < 20; ++repeat) {
++        first = MakeCanvasFingerprintCopy(std::move(first), seed);
++        ASSERT_TRUE(first);
++        EXPECT_EQ(Read(first), observed);
++        EXPECT_NE(Read(first), original);
++      }
++      EXPECT_EQ(Read(source), original);
++    }
++  }
++}
++
++TEST(McCanvasFingerprintTest, FloatToRgba8RetainsSameObservableProjection) {
++  auto sdr_source = AllSdrCodes(kRGBA_8888_SkColorType);
++  ASSERT_TRUE(sdr_source);
++  for (uint32_t seed : {123456789u, 987654321u, 3324349380u}) {
++    auto byte_copy = MakeCanvasFingerprintCopy(sdr_source, seed);
++    ASSERT_TRUE(byte_copy);
++    const auto expected = ReadRgba8(byte_copy);
++    ASSERT_NE(expected, ReadRgba8(sdr_source));
++    for (SkColorType type : {kRGBA_F16_SkColorType, kRGBA_F32_SkColorType}) {
++      auto float_source = AllSdrCodes(type);
++      ASSERT_TRUE(float_source);
++      EXPECT_EQ(ReadRgba8(float_source), ReadRgba8(sdr_source));
++      auto float_copy = MakeCanvasFingerprintCopy(float_source, seed);
++      ASSERT_TRUE(float_copy);
++      EXPECT_EQ(ReadRgba8(float_copy), expected);
++      EXPECT_EQ(float_copy->PaintImageForCurrentFrame().GetSkImageInfo().colorType(), type);
++    }
++  }
++}
++
++TEST(McCanvasFingerprintTest, IntegerTranslationCannotCollectCleanSamples) {
++  auto source = AllSdrCodes(kRGBA_8888_SkColorType);
++  ASSERT_TRUE(source);
++  const auto original = ReadRgba8(source);
++  const SkImageInfo info = SkImageInfo::Make(256, 1, kRGBA_8888_SkColorType,
++                                           kUnpremul_SkAlphaType,
++                                           SkColorSpace::MakeSRGB());
++  for (uint32_t seed : {123456789u, 987654321u}) {
++    auto expected = original;
++    ASSERT_TRUE(ProtectCanvasOwnedPixmap(
++        SkPixmap(info, expected.data(), 256 * 4), 0, 0, seed));
++    ASSERT_NE(expected, original);
++    std::vector<uint8_t> low_bit_votes(original.size(), 0);
++    for (int translation = 0; translation < 16; ++translation) {
++      auto translated = original;
++      ASSERT_TRUE(ProtectCanvasOwnedPixmap(
++          SkPixmap(info, translated.data(), 256 * 4), translation * 131, 0, seed));
++      EXPECT_EQ(translated, expected);
++      for (size_t at = 0; at < translated.size(); ++at)
++        low_bit_votes[at] += translated[at] & 1u;
++    }
++    auto majority = expected;
++    for (size_t at = 0; at < majority.size(); ++at)
++      majority[at] = static_cast<uint8_t>((majority[at] & 0xfeu) |
++                                         (low_bit_votes[at] > 8 ? 1 : 0));
++    EXPECT_EQ(majority, expected);
++    EXPECT_NE(majority, original);
++  }
++}
++
++}  // namespace
++}  // namespace blink
+diff --git a/third_party/blink/renderer/platform/graphics/mc_canvas_noise.h b/third_party/blink/renderer/platform/graphics/mc_canvas_noise.h
+new file mode 100644
+index 0000000..2bcc61f
+--- /dev/null
++++ b/third_party/blink/renderer/platform/graphics/mc_canvas_noise.h
+@@ -0,0 +1,210 @@
++// Copyright 2026 MC Proxy contributors.
++// SPDX-License-Identifier: MIT
++// Shared by the native readback and encoding paths; never modifies source data.
++#ifndef MC_PROXY_NATIVE_CANVAS_NOISE_H_
++#define MC_PROXY_NATIVE_CANVAS_NOISE_H_
++
++#include <array>
++#include <bit>
++#include <cstddef>
++#include <cstdint>
++#include <cmath>
++#include <limits>
++#include <span>
++
++namespace mc_proxy::canvas {
++
++enum class PixelFormat { kRgba8888, kRgbaF16, kRgbaF32 };
++
++constexpr size_t BytesPerPixel(PixelFormat format) {
++  switch (format) {
++    case PixelFormat::kRgba8888: return 4;
++    case PixelFormat::kRgbaF16: return 8;
++    case PixelFormat::kRgbaF32: return 16;
++  }
++  return 0;
++}
++
++// Unsigned arithmetic is deliberately fixed-width, endian-independent, and has
++// no process/thread PRNG state. Projection depends on color content, not pixel
++// position: translating an unread source must not expose independent noise
++// samples that a page can majority-vote away. Crops still agree without a full
++// canvas readback. Coordinates remain accepted/validated for the shared API.
++constexpr uint64_t Mix(uint64_t value) {
++  value ^= value >> 30;
++  value *= UINT64_C(0xbf58476d1ce4e5b9);
++  value ^= value >> 27;
++  value *= UINT64_C(0x94d049bb133111eb);
++  return value ^ (value >> 31);
++}
++
++constexpr uint64_t PixelKey(uint32_t seed, int64_t /*x*/, int64_t /*y*/) {
++  return Mix((static_cast<uint64_t>(seed) << 32) ^ UINT64_C(0xd1b54a32d192ed03));
++}
++
++// A many-to-one projection, not a reversible XOR mask. Both values in a
++// selected adjacent pair map to the same low bit, so writing an observed image
++// back and reading it again cannot undo the protection. Only immutable high
++// bits participate in the key: re-reads and integer translations are idempotent.
++// All adjacent pairs are projected; sparse position-dependent selection leaks
++// independent clean samples. High bits remain observable: arbitrary chosen
++// color transforms are an explicit limitation, not a cryptographic guarantee.
++constexpr uint32_t ProjectLowBit(uint64_t pixel_key, uint32_t channel,
++                                 uint32_t value) {
++  const uint64_t field = Mix(pixel_key ^
++      (static_cast<uint64_t>(channel + 1) * UINT64_C(0x9e3779b97f4a7c15)) ^
++      (value & 0xfffffffeu));
++  return (value & 0xfffffffeu) | static_cast<uint32_t>(field & 1u);
++}
++
++inline float HalfToFloat(uint16_t value) {
++  const uint32_t sign = static_cast<uint32_t>(value & 0x8000u) << 16;
++  const uint32_t exponent = (value >> 10) & 31u;
++  const uint32_t mantissa = value & 1023u;
++  if (!exponent) {
++    const float magnitude = std::ldexp(static_cast<float>(mantissa), -24);
++    return sign ? -magnitude : magnitude;
++  }
++  return std::bit_cast<float>(sign | ((exponent + 112u) << 23) |
++                              (mantissa << 13));
++}
++
++// Only used for changed, finite, normalized [0,1] channels. Preserve all other
++// half encodings verbatim, including HDR, NaN and infinity.
++inline uint16_t UnitFloatToHalf(float value) {
++  if (value <= 0) return 0;
++  const uint32_t bits = std::bit_cast<uint32_t>(value);
++  const uint32_t exponent = (bits >> 23) & 255u;
++  if (exponent < 113u) {
++    if (exponent < 102u) return 0;
++    const uint32_t mantissa = (bits & 0x7fffffu) | 0x800000u;
++    const uint32_t shift = 126u - exponent;
++    const uint32_t rounded = mantissa + ((1u << (shift - 1u)) - 1u) +
++                              ((mantissa >> shift) & 1u);
++    return static_cast<uint16_t>(rounded >> shift);
++  }
++  const uint32_t rounded = bits + 0xfffu + ((bits >> 13) & 1u);
++  return static_cast<uint16_t>((rounded - 0x38000000u) >> 13);
++}
++
++inline uint32_t UnitByte(float value) {
++  return static_cast<uint32_t>(std::floor(static_cast<double>(value) * 255 + .5));
++}
++
++inline float ProjectUnitFloat(uint64_t key, uint32_t channel, float value) {
++  const uint32_t code = UnitByte(value);
++  const uint32_t projected = ProjectLowBit(key, channel, code);
++  if (projected == code) return value;
++  // Move by one observable 8-bit code and retain the original sub-code residual.
++  // This closes float16 -> uint8 conversion stripping sub-ULP-only noise.
++  const float shifted = value +
++      static_cast<float>(static_cast<int>(projected) - static_cast<int>(code)) /
++          255.0f;
++  return std::fmax(0.0f, std::fmin(1.0f, shifted));
++}
++
++// Mutates only a *fresh, caller-owned, unpremultiplied* destination. In Blink:
++// - getImageData's newly allocated destination is already caller-owned;
++// - encoding first readPixels() into private SkData and then calls this helper.
++// Never pass a borrowed SkPixmap or any source canvas resource to this function.
++// Rows may be padded. Padding, alpha, and fully transparent pixel RGB stay exact.
++// 8-bit RGB changes by at most one integer code point. Normalized F16/F32 use
++// the SAME observable 8-bit projection, retaining residual precision rather
++// than adding a mantissa ULP that disappears on uint8 conversion. Values outside
++// [0,1] retain their range/sign/exponent with a low-mantissa projection. No claim
++// is made that arbitrary color conversion or lossy encoding retains a low bit.
++inline bool ApplyToOwnedUnpremul(std::span<uint8_t> bytes,
++                                size_t width, size_t height,
++                                size_t row_bytes, PixelFormat format,
++                                int64_t origin_x, int64_t origin_y,
++                                uint32_t seed) {
++  const size_t bpp = BytesPerPixel(format);
++  if (!bpp || width > std::numeric_limits<size_t>::max() / bpp) return false;
++  const size_t packed_row = width * bpp;
++  if (row_bytes < packed_row) return false;
++  if (!width || !height) return true;
++  if (height - 1 > (std::numeric_limits<size_t>::max() - packed_row) /
++                       row_bytes) return false;
++  if ((height - 1) * row_bytes + packed_row > bytes.size()) return false;
++  if (width - 1 > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) ||
++      height - 1 > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) ||
++      origin_x > std::numeric_limits<int64_t>::max() -
++                     static_cast<int64_t>(width - 1) ||
++      origin_y > std::numeric_limits<int64_t>::max() -
++                     static_cast<int64_t>(height - 1)) return false;
++  if (!seed) return true;
++
++  for (size_t y = 0; y < height; ++y) {
++    auto row = bytes.subspan(y * row_bytes, packed_row);
++    for (size_t x = 0; x < width; ++x) {
++      auto pixel = row.subspan(x * bpp, bpp);
++      const uint64_t key = PixelKey(seed, origin_x + static_cast<int64_t>(x),
++                                   origin_y + static_cast<int64_t>(y));
++      if (format == PixelFormat::kRgba8888) {
++        if (pixel[3] == 0) continue;
++        for (uint32_t channel = 0; channel < 3; ++channel)
++          pixel[channel] = static_cast<uint8_t>(
++              ProjectLowBit(key, channel, pixel[channel]));
++      } else if (format == PixelFormat::kRgbaF16) {
++        const uint16_t alpha = std::bit_cast<uint16_t>(
++            std::array<uint8_t, 2>{pixel[6], pixel[7]});
++        if ((alpha & 0x7fffu) == 0 || (alpha & 0x7c00u) == 0x7c00u) continue;
++        for (uint32_t channel = 0; channel < 3; ++channel) {
++          const size_t at = channel * 2;
++          uint16_t value = std::bit_cast<uint16_t>(
++              std::array<uint8_t, 2>{pixel[at], pixel[at + 1]});
++          if ((value & 0x7c00u) != 0x7c00u) {
++            const float number = HalfToFloat(value);
++            if (number >= 0 && number <= 1) {
++              const float projected = ProjectUnitFloat(key, channel, number);
++              if (projected == number) continue;
++              value = UnitFloatToHalf(projected);
++              const uint32_t target = ProjectLowBit(key, channel, UnitByte(number));
++              // Half rounding at an 8-bit bucket edge can cross back. Fall back
++              // to the bucket center; do not silently discard the projection.
++              if (UnitByte(HalfToFloat(value)) != target)
++                value = UnitFloatToHalf(static_cast<float>(target) / 255.0f);
++            } else {
++              value = static_cast<uint16_t>(ProjectLowBit(key, channel, value));
++            }
++            const auto encoded = std::bit_cast<std::array<uint8_t, 2>>(value);
++            pixel[at] = encoded[0];
++            pixel[at + 1] = encoded[1];
++          }
++        }
++      } else {
++        const uint32_t alpha = std::bit_cast<uint32_t>(
++            std::array<uint8_t, 4>{pixel[12], pixel[13], pixel[14], pixel[15]});
++        if ((alpha & 0x7fffffffu) == 0 ||
++            (alpha & 0x7f800000u) == 0x7f800000u) continue;
++        for (uint32_t channel = 0; channel < 3; ++channel) {
++          const size_t at = channel * 4;
++          uint32_t value = std::bit_cast<uint32_t>(
++              std::array<uint8_t, 4>{pixel[at], pixel[at + 1],
++                                     pixel[at + 2], pixel[at + 3]});
++          if ((value & 0x7f800000u) != 0x7f800000u) {
++            const float number = std::bit_cast<float>(value);
++            if (number >= 0 && number <= 1) {
++              float projected = ProjectUnitFloat(key, channel, number);
++              if (projected == number) continue;
++              const uint32_t target = ProjectLowBit(key, channel, UnitByte(number));
++              if (UnitByte(projected) != target)
++                projected = static_cast<float>(target) / 255.0f;
++              value = std::bit_cast<uint32_t>(projected);
++            } else {
++              value = ProjectLowBit(key, channel, value);
++            }
++            const auto encoded = std::bit_cast<std::array<uint8_t, 4>>(value);
++            for (size_t index = 0; index < encoded.size(); ++index)
++              pixel[at + index] = encoded[index];
++          }
++        }
++      }
++    }
++  }
++  return true;
++}
++
++}  // namespace mc_proxy::canvas
++
++#endif  // MC_PROXY_NATIVE_CANVAS_NOISE_H_
